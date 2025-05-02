@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Method Execution Metrics</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link rel="stylesheet"
+          href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css"/>
+    <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+    <style>
+        body {
+            font-family: sans-serif;
+            padding: 1em
+        }
+
+        #charts {
+            display: grid;
+            grid-template-columns:repeat(2, 1fr);
+            gap: 2em
+        }
+
+        .chart-box {
+            position: relative;
+            height: 500px
+        }
+
+        #details {
+            margin-top: 2em;
+            border: 1px solid #ddd;
+            padding: 1em;
+            border-radius: 8px
+        }
+
+        #methodTable {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: .5em
+        }
+    </style>
+</head>
+<body>
+<h1>Method Execution Metrics</h1>
+<label>Top N: <input type="number" id="topN" value="10" min="1"></label>
+
+<div id="charts">
+    <div class="chart-box">
+        <canvas id="avgChart"></canvas>
+    </div>
+    <div class="chart-box">
+        <canvas id="sumChart"></canvas>
+    </div>
+    <div class="chart-box">
+        <canvas id="countChart"></canvas>
+    </div>
+    <div class="chart-box">
+        <canvas id="pieChart"></canvas>
+    </div>
+    <div class="chart-box" style="grid-column:span 2">
+        <canvas id="timeSeriesChart"></canvas>
+    </div>
+</div>
+
+<div id="details">
+    <h2>Detailed Method Table</h2>
+    <table id="methodTable" class="display">
+        <thead>
+        <tr>
+            <th>Method</th>
+            <th>Avg (ms)</th>
+            <th>Sum (ms)</th>
+            <th>Calls</th>
+        </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+</div>
+
+<script>
+    /*__DATA_PLACEHOLDER__*/
+
+    const charts = {};
+    let dataTable;
+    const topNInput = document.getElementById('topN');
+
+    topNInput.addEventListener('input', () => refresh(+topNInput.value));
+
+    $(document).ready(() => {
+        dataTable = $('#methodTable').DataTable({
+            columns: [
+                {data: 'method'},
+                {data: 'avg', type: 'num'},
+                {data: 'sum', type: 'num'},
+                {data: 'count', type: 'num'}
+            ],
+            pageLength: 10,
+            order: [[2, 'desc']]
+        });
+        refresh(+topNInput.value);
+    });
+
+    function refresh(N) {
+        const n = Math.max(1, N);
+        const byAvg = [...preComputed.dataArr].sort((a, b) => b.avg - a.avg).slice(0, n);
+        const bySum = [...preComputed.dataArr].sort((a, b) => b.sum - a.sum).slice(0, n);
+        const byCount = [...preComputed.dataArr].sort((a, b) => b.count - a.count).slice(0, n);
+
+        bar('avgChart', 'Average Exec Time (ms)', byAvg.map(o => o.method), byAvg.map(o => o.avg));
+        bar('sumChart', 'Total Exec Time (ms)', bySum.map(o => o.method), bySum.map(o => o.sum));
+        bar('countChart', 'Number of Calls', byCount.map(o => o.method), byCount.map(o => o.count));
+        pie('pieChart', 'Share of Total Exec', bySum.map(o => o.method), bySum.map(o => o.sum));
+        line('timeSeriesChart', 'Calls Over Time', preComputed.timeSeries);
+        populate(preComputed.dataArr);
+    }
+
+    function bar(id, title, labels, data) {
+        destroyIfExists(id);
+        charts[id] = new Chart(document.getElementById(id), {
+            type: 'bar',
+            data: {labels, datasets: [{label: title, data}]},
+            options: {
+                indexAxis: 'y',
+                plugins: {title: {display: true, text: title}},
+                scales: {x: {beginAtZero: true}}
+            }
+        });
+    }
+
+    function pie(id, title, labels, data) {
+        destroyIfExists(id);
+        charts[id] = new Chart(document.getElementById(id), {
+            type: 'pie',
+            data: {labels, datasets: [{label: title, data}]},
+            options: {plugins: {title: {display: true, text: title}}}
+        });
+    }
+
+    function line(id, title, series) {
+        destroyIfExists(id);
+        const items = Object.entries(series).sort((a, b) => a[0].localeCompare(b[0]));
+        charts[id] = new Chart(document.getElementById(id), {
+            type: 'line',
+            data: {
+                labels: items.map(i => i[0]),
+                datasets: [{label: title, data: items.map(i => i[1]), fill: false}]
+            },
+            options: {
+                plugins: {title: {display: true, text: title}},
+                scales: {
+                    x: {title: {display: true, text: 'Timestamp'}},
+                    y: {beginAtZero: true, title: {display: true, text: 'Calls'}}
+                }
+            }
+        });
+    }
+
+    function destroyIfExists(id) {
+        if (charts[id] && typeof charts[id].destroy === 'function') {
+            charts[id].destroy();
+        }
+    }
+
+    function populate(arr) {
+        dataTable.clear();
+        dataTable.rows.add(arr.map(o => ({
+            method: o.method,
+            avg: +o.avg.toFixed(1),
+            sum: o.sum,
+            count: o.count
+        })));
+        dataTable.draw();
+    }
+</script>
+</body>
+</html>

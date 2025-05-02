@@ -1,0 +1,94 @@
+import groovy.json.JsonOutput
+
+plugins {
+    id 'java'
+}
+
+group = 'by.bivis'
+version = '1.0.0'
+
+repositories {
+    mavenCentral()
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+dependencies {
+    compileOnly 'org.projectlombok:lombok:1.18.38'
+    annotationProcessor 'org.projectlombok:lombok:1.18.38'
+
+    implementation 'org.aspectj:aspectjrt:1.9.21.2'
+    runtimeOnly 'org.aspectj:aspectjweaver:1.9.21.2'
+
+    implementation 'org.slf4j:slf4j-api:2.0.17'
+    runtimeOnly 'ch.qos.logback:logback-classic:1.5.18'
+
+    testImplementation 'org.testng:testng:7.11.0'
+}
+
+def aspectjAgent = {
+    configurations.runtimeClasspath
+            .find { it.name.startsWith('aspectjweaver') }
+            .absolutePath
+}
+
+tasks.register('generateMethodMetricsReport') {
+
+    description = 'Generates HTML report for method metrics'
+    group = 'verification'
+
+    inputs.file("$buildDir/aspect_method_metrics.log")
+    inputs.file("$projectDir/docs/methodMetrics/template.html")
+    outputs.file("$buildDir/reports/methodMetrics.html")
+
+    doLast {
+        def logFile = file("$buildDir/aspect_method_metrics.log")
+        if (!logFile.exists()) {
+            throw new GradleException("Log file not found: $logFile")
+        }
+
+        def lineRe = ~/^(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}).* - ([\w$]+)\.([\w$]+) executed in (\d+) ms/
+        def stats = [:].withDefault { [sum: 0L, count: 0L] }
+        def timeSeries = [:].withDefault { 0L }
+
+        logFile.eachLine { ln ->
+            def m = ln =~ lineRe
+            if (m.matches()) {
+                def ts = m[0][1]
+                def method = "${m[0][2]}.${m[0][3]}"
+                def dur = m[0][4].toLong()
+                stats[method].sum += dur
+                stats[method].count += 1
+                timeSeries[ts] += 1
+            }
+        }
+        def dataArr = stats.collect { k, v ->
+            [method: k, sum: v.sum, count: v.count, avg: (double) v.sum / v.count]
+        }
+
+        def json = JsonOutput.prettyPrint(JsonOutput.toJson([dataArr: dataArr, timeSeries: timeSeries]))
+        def tpl = file("$projectDir/docs/methodMetrics/template.html").text
+        def html = tpl.replace('/*__DATA_PLACEHOLDER__*/', "const preComputed = $json;")
+
+        def outDir = file("$buildDir")
+        file("$outDir/methodMetrics.html").text = html
+        println "Report saved to $outDir/methodMetrics.html"
+    }
+}
+
+tasks.register('runSample', JavaExec) {
+    group = 'application'
+    description = 'Run example Main with aspect'
+    mainClass = 'by.bivis.metrics.Main'
+    classpath = sourceSets.main.runtimeClasspath
+    jvmArgs "-javaagent:${aspectjAgent()}"
+}
+
+test {
+    useTestNG()
+    jvmArgs "-javaagent:${aspectjAgent()}"
+}
