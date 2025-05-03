@@ -9,7 +9,7 @@ dedicated log file, then a Gradle task turns that log into an interactive HTML r
 time. You should replace that expression with one matching your own package.\
 • Each timed call is written by SLF4J/Logback into build/aspect\_method\_metrics.log.\
 • The generateMethodMetricsReport task parses the log, computes per-method sum, count, average and a time-series,
-converts it all to JSON and injects it into docs/methodMetrics/template.html.\
+converts it all to JSON and injects it into docs/methodMetrics/template.html.
 
 ## Getting started
 1. Run tests (with metrics):\
