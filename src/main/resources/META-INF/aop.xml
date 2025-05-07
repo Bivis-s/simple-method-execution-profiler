@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <aspectj>
+    <weaver options="-verbose -showWeaveInfo"/>
     <aspects>
-        <aspect name="by.bivis.metrics.MethodMetricsAspect"/>
+        <aspect name="by.bivis.influx_aspect_profiler.TimingAspect"/>
     </aspects>
 </aspectj>

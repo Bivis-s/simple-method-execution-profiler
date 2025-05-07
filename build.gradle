@@ -21,11 +21,10 @@ dependencies {
     compileOnly 'org.projectlombok:lombok:1.18.38'
     annotationProcessor 'org.projectlombok:lombok:1.18.38'
 
+    implementation 'com.influxdb:influxdb-client-java:7.2.0'
+
     implementation 'org.aspectj:aspectjrt:1.9.21.2'
     runtimeOnly 'org.aspectj:aspectjweaver:1.9.21.2'
-
-    implementation 'org.slf4j:slf4j-api:2.0.17'
-    runtimeOnly 'ch.qos.logback:logback-classic:1.5.18'
 
     testImplementation 'org.testng:testng:7.11.0'
 }
@@ -85,7 +84,10 @@ tasks.register('runSample', JavaExec) {
     description = 'Run example Main with aspect'
     mainClass = 'by.bivis.metrics.Main'
     classpath = sourceSets.main.runtimeClasspath
-    jvmArgs "-javaagent:${aspectjAgent()}"
+    jvmArgs = [
+            "-javaagent:${aspectjAgent()}",
+            "-Daj.weaving.verbose=true"
+    ]
 }
 
 test {
