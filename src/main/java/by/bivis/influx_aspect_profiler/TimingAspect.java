@@ -1,5 +1,9 @@
 package by.bivis.influx_aspect_profiler;
 
+import com.influxdb.client.InfluxDBClient;
+import com.influxdb.client.InfluxDBClientFactory;
+import com.influxdb.client.WriteApi;
+import com.influxdb.client.WriteOptions;
 import com.influxdb.client.domain.WritePrecision;
 import com.influxdb.client.write.Point;
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -61,15 +65,39 @@ public class TimingAspect {
                     .measurement("method_timing")
                     .addTag("class", className)
                     .addTag("name", name)
+                    .addTag("fullName", name + paramTypesStr)
                     .addTag("kind", kind)
                     .addTag("static", String.valueOf(isStatic))
                     .addTag("param_types", paramTypesStr)
                     .addField("duration_ns", duration)
-                    .addField("duration_ns_2", duration)
-                    .addField("duration_ns_3", 5555)
                     .time(Instant.now(), WritePrecision.NS);
 
             InfluxClient.writeApi.writePoint(point);
+        }
+    }
+
+    public static class InfluxClient {
+        public static final InfluxDBClient client;
+        public static final WriteApi writeApi;
+
+        static {
+            String url = System.getProperty("influx.url");
+            char[] token = System.getProperty("influx.token").toCharArray();
+            String org = System.getProperty("influx.org");
+            String bucket = System.getProperty("influx.bucket");
+
+            client = InfluxDBClientFactory.create(url, token, org, bucket);
+
+            WriteOptions options = WriteOptions.builder()
+                    .batchSize(2000)
+                    .flushInterval(1000)
+                    .bufferLimit(5000)
+                    .jitterInterval(0)
+                    .retryInterval(300)
+                    .maxRetries(3)
+                    .build();
+
+            writeApi = client.makeWriteApi(options);
         }
     }
 }
