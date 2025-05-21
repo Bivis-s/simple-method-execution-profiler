@@ -8,7 +8,7 @@ public class DemoTest {
     public void testWork() {
         var demo = new Demo();
 
-        for (int i = 0; i < 10; i++) {
+        for (var i = 0; i < 10; i++) {
             demo.imitateWork1();
             demo.imitateWork2();
             demo.imitateWork3();

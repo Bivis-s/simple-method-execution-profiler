@@ -10,7 +10,7 @@ public class Main {
 
         var demo = new Demo();
 
-        for (int i = 0; i < 5000; i++) {
+        for (var i = 0; i < 5000; i++) {
             demo.imitateWork1();
             demo.imitateWork2();
             demo.imitateWork3();
