@@ -24,9 +24,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
 
-/**
- * “Ultimate” timing aspect – combines micro‑ and macro‑optimisations.
- */
 @Aspect
 public final class UltimateTimingAspect {
 
@@ -130,7 +127,7 @@ public final class UltimateTimingAspect {
     }
 
     private static void processLoop() {
-        ThreadLocal<StringBuilder> builderTL = ThreadLocal.withInitial(() -> new StringBuilder(192));
+        ThreadLocal<StringBuilder> builderTL = ThreadLocal.withInitial(() -> new StringBuilder(512));
         WriteApi writeApi = null;
 
         for (; ; ) {
@@ -203,10 +200,10 @@ public final class UltimateTimingAspect {
         private static final WriteApi WRITE_API;
 
         static {
-            String url = System.getProperty("influx.url");
-            String token = System.getProperty("influx.token");
-            String org = System.getProperty("influx.org");
-            String bucket = System.getProperty("influx.bucket");
+            String url = System.getProperty("influx.url", "http://localhost:8086");
+            String token = System.getProperty("influx.token", "1YgT-1a0hQ0Cd0G_LbO-hXv9d795eSqYBIRFTy12SVf-LtAtQhD_R33S3b1DjursbMfx4M1djQF-3ttsJxpH9Q==");
+            String org = System.getProperty("influx.org", "dev");
+            String bucket = System.getProperty("influx.bucket", "ultimate");
 
             boolean ok = Stream.of(url, token, org, bucket).allMatch(Objects::nonNull);
             if (!ok) {

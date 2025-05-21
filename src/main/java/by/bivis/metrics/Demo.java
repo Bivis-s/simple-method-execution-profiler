@@ -7,7 +7,7 @@ public class Demo {
 
     public void imitateWork1() {
         try {
-            Thread.sleep(rand.nextInt(0, 50));
+            Thread.sleep(rand.nextInt(0, 400));
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
@@ -15,7 +15,7 @@ public class Demo {
 
     public void imitateWork2() {
         try {
-            Thread.sleep(rand.nextInt(0, 25));
+            Thread.sleep(rand.nextInt(0, 200));
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
@@ -23,7 +23,7 @@ public class Demo {
 
     public void imitateWork3() {
         try {
-            Thread.sleep(10);
+            Thread.sleep(100);
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
@@ -31,7 +31,7 @@ public class Demo {
 
     public void imitateWork4() {
         try {
-            Thread.sleep(10);
+            Thread.sleep(50);
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }

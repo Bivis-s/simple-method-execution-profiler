@@ -2,6 +2,6 @@
 <aspectj>
     <weaver options="-verbose -showWeaveInfo"/>
     <aspects>
-        <aspect name="by.bivis.influx_aspect_profiler.TimingAspect"/>
+        <aspect name="by.bivis.influx_aspect_profiler.UltimateTimingAspect"/>
     </aspects>
 </aspectj>
