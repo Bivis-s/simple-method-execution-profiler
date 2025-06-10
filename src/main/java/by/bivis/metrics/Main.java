@@ -10,18 +10,18 @@ public class Main {
 
         var demo = new Demo();
 
-        for (var i = 0; i < 5000; i++) {
+        for (var i = 0; i < 50; i++) {
             demo.imitateWork1();
             demo.imitateWork2();
             demo.imitateWork3();
             demo.imitateWork4();
-            yesStatic();
+            yesStatic("q", 1);
             emptyMethod();
         }
     }
 
-    public static void yesStatic() {
-        System.out.println("qwe");
+    public static void yesStatic(String s, int i) {
+        System.out.println("qwe " + s + " " + i);
     }
 
     public static void emptyMethod() {

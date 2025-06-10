@@ -86,7 +86,7 @@ public final class UltimateTimingAspect {
                 params = new Class<?>[0];
             }
 
-            var sj = new StringJoiner(",", "(", ")");
+            var sj = new StringJoiner("\\,", "(", ")");
             for (var p : params) sj.add(p.getSimpleName());
 
             return "method_timing"
